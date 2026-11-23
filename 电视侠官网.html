@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电视侠 · 本地电视直播</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='6' width='26' height='18' rx='3' fill='none' stroke='%2300ff88' stroke-width='2'/%3E%3Cpath d='M12 12l8 3-8 3z' fill='%2300ff88'/%3E%3Cline x1='11' y1='27' x2='21' y2='27' stroke='%2300ff88' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap">
+<style>
+:root{
+  --bg:#0b0d16; --bg2:#10131f; --card:#151929; --line:#23283d;
+  --ink:#e9ecf4; --ink2:#9aa1b8; --ink3:#6b7189;
+  --green:#00ff88; --green-dim:rgba(0,255,136,.12);
+  --blue:#5b9bff; --blue-dim:rgba(91,155,255,.12);
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+svg{display:block}
+
+/* ===== 导航 ===== */
+nav{position:sticky;top:0;z-index:50;background:rgba(11,13,22,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1080px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:19px;letter-spacing:1px}
+.logo svg{width:26px;height:26px}
+.nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink2)}
+.nav-links a{transition:color .2s}
+.nav-links a:hover{color:var(--green)}
+@media(max-width:720px){.nav-links{display:none}}
+
+/* ===== Hero ===== */
+.hero{padding:88px 0 72px;display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+@media(max-width:860px){.hero{grid-template-columns:1fr;padding:56px 0 40px}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--green);background:var(--green-dim);border:1px solid rgba(0,255,136,.25);padding:6px 14px;border-radius:999px;margin-bottom:22px}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.hero h1{font-size:52px;font-weight:900;line-height:1.2;letter-spacing:2px;margin-bottom:18px}
+.hero h1 span{color:var(--green)}
+.hero p.sub{font-size:17px;color:var(--ink2);max-width:460px;margin-bottom:32px}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:999px;font-size:15px;font-weight:700;transition:transform .15s,background .2s;cursor:pointer;border:1px solid transparent}
+.btn-green{background:var(--green);color:#06130c}
+.btn-green:hover{transform:translateY(-2px)}
+.btn-ghost{border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.hero-meta{display:flex;gap:32px;margin-top:36px;flex-wrap:wrap}
+.hero-meta .m b{display:block;font-size:26px;font-weight:900;color:var(--green)}
+.hero-meta .m span{font-size:13px;color:var(--ink3)}
+
+/* 手机模拟 */
+.phone{width:100%;max-width:360px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:28px;padding:14px;box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.ph-top{display:flex;align-items:center;gap:10px;padding:6px 4px 12px}
+.ph-gear{width:22px;height:22px;color:var(--ink2)}
+.ph-title{flex:1;font-size:15px;font-weight:700}
+.ph-status{font-size:11px;color:var(--green);background:var(--green-dim);padding:3px 10px;border-radius:999px}
+.ph-video{background:#05070d;border-radius:14px;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:10px}
+.ph-play{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+.ph-play svg{width:22px;height:22px;fill:#fff}
+.ph-info{position:absolute;left:10px;bottom:10px;font-size:11px;color:#fff;background:rgba(0,0,0,.55);padding:5px 10px;border-radius:8px}
+.ph-ctrl{display:flex;gap:8px;margin-bottom:10px}
+.ph-ctrl div{flex:1;text-align:center;font-size:12px;padding:9px 0;background:var(--card);border-radius:10px;color:var(--ink2)}
+.ph-tabs{display:flex;gap:8px;margin-bottom:10px;overflow:hidden}
+.ph-tabs span{font-size:12px;padding:6px 14px;border-radius:999px;white-space:nowrap}
+.ph-tabs .on{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,255,136,.3)}
+.ph-tabs .off{color:var(--ink2);background:var(--card)}
+.ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ph-grid div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 4px;text-align:center;font-size:12px;color:var(--ink)}
+.ph-grid .add{border-color:rgba(0,255,136,.4);color:var(--green)}
+
+/* ===== 通用区块 ===== */
+section{padding:76px 0}
+.sec-head{margin-bottom:40px}
+.sec-head .kicker{font-size:13px;color:var(--green);letter-spacing:2px;margin-bottom:10px}
+.sec-head h2{font-size:32px;font-weight:900;letter-spacing:1px}
+.sec-head p{color:var(--ink2);margin-top:10px;max-width:560px}
+
+/* 功能 */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:860px){.feat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.feat-grid{grid-template-columns:1fr}}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:border-color .2s,transform .15s}
+.feat:hover{border-color:rgba(0,255,136,.35);transform:translateY(-3px)}
+.feat .ic{width:44px;height:44px;border-radius:12px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--green)}
+.feat .ic svg{width:22px;height:22px}
+.feat h3{font-size:17px;font-weight:700;margin-bottom:8px}
+.feat p{font-size:14px;color:var(--ink2)}
+
+/* 频道 */
+.ch-cats{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.ch-tab{padding:9px 20px;border-radius:999px;font-size:14px;border:1px solid var(--line);color:var(--ink2);cursor:pointer;background:transparent;transition:all .2s}
+.ch-tab.on{background:var(--green-dim);border-color:rgba(0,255,136,.4);color:var(--green)}
+.ch-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:720px){.ch-wall{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.ch-wall{grid-template-columns:repeat(2,1fr)}}
+.ch-chip{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 10px;text-align:center;font-size:14px;color:var(--ink2);transition:all .2s}
+.ch-chip:hover{color:var(--green);border-color:rgba(0,255,136,.35)}
+
+/* 三步 */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:720px){.steps{grid-template-columns:1fr}}
+.step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;position:relative}
+.step .num{font-size:34px;font-weight:900;color:var(--green);opacity:.5;position:absolute;top:18px;right:22px}
+.step h3{font-size:18px;margin-bottom:8px}
+.step p{font-size:14px;color:var(--ink2)}
+
+/* 时间轴 */
+.tl{display:grid;grid-template-columns:80px 28px 1fr;gap:0;row-gap:26px}
+@media(max-width:640px){.tl{grid-template-columns:64px 20px 1fr}}
+.tl .ver{font-size:15px;font-weight:700;color:var(--green);text-align:right;padding-top:2px}
+.tl .axis{position:relative;justify-self:center;width:100%}
+.tl .axis::before{content:"";position:absolute;left:50%;top:0;bottom:-14px;width:2px;background:var(--line);transform:translateX(-50%)}
+.tl .node{width:12px;height:12px;border-radius:50%;background:var(--green);margin:6px auto 0;box-shadow:0 0 0 5px var(--green-dim)}
+.tl:last-child .axis::before{display:none}
+.tl .body h3{font-size:16px;font-weight:700}
+.tl .body p{font-size:14px;color:var(--ink2)}
+
+/* FAQ */
+.faq{max-width:760px}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;padding:0 22px}
+.faq summary{cursor:pointer;padding:18px 0;font-size:16px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--green);font-size:22px;transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq .a{padding:0 0 18px;color:var(--ink2);font-size:14.5px}
+
+/* 下载 */
+.dl{background:linear-gradient(160deg,var(--green-dim),transparent 60%),var(--card);border:1px solid rgba(0,255,136,.25);border-radius:20px;padding:44px;text-align:center}
+.dl h2{font-size:28px;font-weight:900;margin-bottom:12px}
+.dl p{color:var(--ink2);margin-bottom:24px}
+.dl .qq{font-size:14px;color:var(--ink2);margin-top:16px}
+.dl .qq b{color:var(--green)}
+
+footer{border-top:1px solid var(--line);padding:36px 0;text-align:center;color:var(--ink3);font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- ===== 导航 ===== -->
+<nav>
+  <div class="nav-in">
+    <a class="logo" href="#top">
+      <svg viewBox="0 0 32 32" fill="none"><rect x="3" y="6" width="26" height="18" rx="3" stroke="#00ff88" stroke-width="2"/><path d="M12 12l8 3-8 3z" fill="#00ff88"/><line x1="11" y1="27" x2="21" y2="27" stroke="#00ff88" stroke-width="2"/></svg>
+      电视侠
+    </a>
+    <div class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#channels">频道</a>
+      <a href="#log">更新日志</a>
+      <a href="#faq">常见问题</a>
+      <a href="#download">联系</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="hero wrap" id="top">
+  <div>
+    <span class="eyebrow"><span class="dot"></span>本地运行 · 自定义直播源</span>
+    <h1>想看的台，<br>自己的<span>直播源</span>自己管</h1>
+    <p class="sub">电视侠是一款轻量本地电视直播工具：内置 CCTV、卫视、少儿频道，支持多路源自动切换、批量检测与 M3U 文件导入，所有频道数据保存在手机本地。</p>
+    <div class="cta-row">
+      <a class="btn btn-green" href="#features">了解功能</a>
+      <a class="btn btn-ghost" href="#download">联系开发者</a>
+    </div>
+    <div class="hero-meta">
+      <div class="m"><b>多路源</b><span>单频道可存多个地址</span></div>
+      <div class="m"><b>自动换源</b><span>播放失败自动切下一路</span></div>
+      <div class="m"><b>本地保存</b><span>配置不依赖云端账号</span></div>
+    </div>
+  </div>
+
+  <!-- 手机界面示意 -->
+  <div class="phone" aria-hidden="true">
+    <div class="ph-top">
+      <svg class="ph-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.18-1.6l2-1.55-2-3.46-2.35 1a7 7 0 0 0-2.77-1.6L13.5 2.5h-3l-.2 2.4a7 7 0 0 0-2.77 1.6l-2.35-1-2 3.46 2 1.55A7 7 0 0 0 5 12c0 .55.06 1.09.18 1.6l-2 1.55 2 3.46 2.35-1a7 7 0 0 0 2.77 1.6l.2 2.4h3l.2-2.4a7 7 0 0 0 2.77-1.6l2.35 1 2-3.46-2-1.55A7 7 0 0 0 19 12z"/></svg>
+      <span class="ph-title">电视直播</span>
+      <span class="ph-status">播放中</span>
+    </div>
+    <div class="ph-video">
+      <div class="ph-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="ph-info">CCTV-1 · 源 2/9</div>
+    </div>
+    <div class="ph-ctrl"><div>上一源</div><div>刷新</div><div>下一源</div></div>
+    <div class="ph-tabs"><span class="on">CCTV</span><span class="off">卫视</span><span class="off">少儿台</span></div>
+    <div class="ph-grid">
+      <div class="add">＋ 添加</div>
+      <div>CCTV-1</div><div>CCTV-2</div><div>CCTV-5</div>
+      <div>CCTV-6</div><div>CCTV-13</div><div>CCTV-14</div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 功能 ===== -->
+<section id="features" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">FEATURES</div>
+    <h2>核心功能</h2>
+    <p>从播放、管理到排查，围绕"直播源会失效"这件事设计。</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h4l2-7 4 14 2-7h4"/></svg></div>
+      <h3>多路源自动切换</h3>
+      <p>一个频道保存多套直播地址，播放失败自动尝试下一路，全部失效才停下并提示。</p>
+    </div>
+    <div class="feat">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg></div>
+      <h3>批量检测直播源</h3>
+      <p>并发检测每个地址，标注成功、失效、超时并显示响应耗时，方便清理无效源。</p>
+    </div>
+    <div class="feat">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+      <h3>分类与频道管理</h3>
+      <p>长按标签改名、删除分类；长按频道格子修改或删除，新增频道可一次粘贴多条地址。</p>
+    </div>
+    <div class="feat">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
+      <h3>M3U 文件导入</h3>
+      <p>从手机选取本地文本文件，自动识别分类、频道名与链接，重名频道自动追加源。</p>
+    </div>
+    <div class="feat">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H4z"/><path d="M8 20h8M12 16v4"/></svg></div>
+      <h3>沉浸式全屏</h3>
+      <p>一键横屏铺满，隐藏状态栏与导航栏；点画面唤出按钮，三秒自动隐藏。</p>
+    </div>
+    <div class="feat">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg></div>
+      <h3>配置本地保存</h3>
+      <p>分类、频道、源状态与列数设置写入本地文件，无需注册账号，重启不丢失。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 频道 ===== -->
+<section id="channels" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">CHANNELS</div>
+    <h2>内置频道一览</h2>
+    <p>首次启动即带好基础频道，后续可自行增删。</p>
+  </div>
+  <div class="ch-cats" id="chCats">
+    <button class="ch-tab on" data-g="cctv">CCTV 系列</button>
+    <button class="ch-tab" data-g="ws">省级卫视</button>
+    <button class="ch-tab" data-g="kids">少儿频道</button>
+  </div>
+  <div class="ch-wall" id="chWall"></div>
+</section>
+
+<!-- ===== 使用三步 ===== -->
+<section class="wrap">
+  <div class="sec-head">
+    <div class="kicker">HOW IT WORKS</div>
+    <h2>三步开始看</h2>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="num">01</div><h3>点一个频道</h3><p>在分类标签里选好分组，点频道格子即可播放，软件自动加载第一路源。</p></div>
+    <div class="step"><div class="num">02</div><h3>卡住就自动换源</h3><p>某一路打不开时软件会跳到下一路；控制行也可以手动上一源、下一源或刷新。</p></div>
+    <div class="step"><div class="num">03</div><h3>失效就检测清理</h3><p>长按频道进入编辑，点"检测"找出可用源，删掉长期失效的地址。</p></div>
+  </div>
+</section>
+
+<!-- ===== 更新日志 ===== -->
+<section id="log" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">CHANGELOG</div>
+    <h2>更新日志</h2>
+    <p>从基础播放器到源管理工具的迭代过程。</p>
+  </div>
+  <div class="tl" id="tl"></div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">FAQ</div>
+    <h2>常见问题</h2>
+  </div>
+  <div class="faq">
+    <details open>
+      <summary>点频道一直转圈或黑屏怎么办？</summary>
+      <div class="a">先等几秒建立连接；无效就点控制行的"刷新"，再点"下一源"换一路地址。软件也会在播放失败时自动尝试下一路源，全部源失效时会在顶部明确提示。</div>
+    </details>
+    <details>
+      <summary>导入 M3U 后没有反应？</summary>
+      <div class="a">确认文件是文本格式：分类行以 ## 开头，频道名单独一行，地址以 http、https、rtsp、rtmp 开头。导入失败时请检查文件是否损坏，或地址是否为加密私有格式。</div>
+    </details>
+    <details>
+      <summary>为什么昨天能看的台今天打不开了？</summary>
+      <div class="a">公开直播地址会随时间失效或更换，这是正常现象。不必反复重装：进入"修改频道"批量检测，把检测为成功的源留在前面即可。</div>
+    </details>
+    <details>
+      <summary>频道格子太大或太小怎么调？</summary>
+      <div class="a">顶部栏的列数选择器可在 1 到 4 列之间切换，设置会自动保存，下次打开保持不变。</div>
+    </details>
+    <details>
+      <summary>自己添加的频道会丢吗？</summary>
+      <div class="a">频道与分类都保存在本地配置文件里，正常使用和清理缓存不会删除；卸载软件或手动删除配置文件后需要重新添加。</div>
+    </details>
+  </div>
+</section>
+
+<!-- ===== 下载/联系 ===== -->
+<section id="download" class="wrap">
+  <div class="dl">
+    <h2>获取安装包与反馈</h2>
+    <p>安装包正在整理中。如有问题、建议或优质直播源，欢迎联系开发者。</p>
+    <a class="btn btn-green" href="#download">意见反馈</a>
+    <div class="qq">开发者 QQ：<b>3939949141</b>（反馈请附上手机型号、系统版本与问题描述）</div>
+  </div>
+</section>
+
+<footer>
+  电视侠 · 本地电视直播工具 · 本站为功能介绍页，不提供任何直播内容
+</footer>
+
+<script>
+// ===== 频道数据 =====
+const CHANNELS = {
+  cctv: ["CCTV-1","CCTV-2","CCTV-3","CCTV-4","CCTV4 美洲","CCTV4 欧洲","CCTV-5","CCTV-5+","CCTV-6","CCTV-7","CCTV-8","CCTV-9","CCTV-10","CCTV-11","CCTV-12","CCTV-13","CCTV-14","CCTV-15","CCTV-16","CCTV-17","CCTV风云足球","viuTV"],
+  ws: ["北京卫视","东方卫视","山西卫视","湖南卫视","浙江卫视","天津卫视","江苏卫视","深圳卫视","重庆卫视","湖北卫视","山东卫视","河北卫视","广东卫视","黑龙江卫视","四川卫视","东南卫视","河南卫视","宁夏卫视","广西卫视","江西卫视","吉林卫视","青海卫视","云南卫视","陕西卫视"],
+  kids: ["金鹰卡通","卡酷少儿","龙华卡通"]
+};
+const wall = document.getElementById('chWall');
+function renderCh(g){
+  wall.innerHTML = CHANNELS[g].map(n=>`<div class="ch-chip">${n}</div>`).join('');
+}
+renderCh('cctv');
+document.getElementById('chCats').addEventListener('click',e=>{
+  const b = e.target.closest('.ch-tab'); if(!b) return;
+  document.querySelectorAll('.ch-tab').forEach(t=>t.classList.remove('on'));
+  b.classList.add('on'); renderCh(b.dataset.g);
+});
+
+// ===== 更新日志 =====
+const LOG = [
+  ['v1.0','基础版本','VideoView 播放器框架，内置 CCTV 与卫视基础直播源，支持点击播放。'],
+  ['v2.0','本地持久化','频道与分类序列化保存到本地文件，新增 1~4 列网格切换并自动记忆。'],
+  ['v3.0','分类管理','新增自定义分类，长按标签可改名、删除分类，标签横向滚动。'],
+  ['v4.0','频道与多源','频道增删改、一路失败自动切换下一路，源状态自动标记成功或失效。'],
+  ['v5.0','全屏与状态','真正横屏沉浸式全屏，加载遮罩、播放状态文字与自动隐藏控制栏。'],
+  ['v6.0','源检测工具','四线程并发批量检测，标注成功 / 失效 / 超时并显示响应耗时与统计。'],
+  ['v7.0','M3U 导入','从本地文件解析分类与频道，重名频道追加源；新增设置页面。'],
+  ['v8.0','稳定与扩充','全面异常捕获防闪退，扩充内置频道，统一深色圆角视觉，优化线程复用。']
+];
+document.getElementById('tl').innerHTML = LOG.map(([v,t,d])=>`
+  <div class="ver">${v}</div>
+  <div class="axis"><div class="node"></div></div>
+  <div class="body"><h3>${t}</h3><p>${d}</p></div>`).join('');
+</script>
+</body>
+</html>
